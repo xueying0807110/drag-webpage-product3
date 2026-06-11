@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Display Page</title>
+  <style>
+    :root {
+      --text: #111;
+      --muted: #666;
+      --border: #d8d8d8;
+      --background: #ffffff;
+      --soft: #f6f6f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: 0.01em;
+    }
+
+    .topbar {
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 48px 32px 72px;
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+      gap: 56px;
+      align-items: stretch;
+    }
+
+    .image-panel {
+      background: var(--soft);
+      min-height: 620px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #eeeeee;
+      overflow: hidden;
+      contain: layout paint;
+    }
+
+    .product-image {
+      width: 82%;
+      height: 560px;
+      object-fit: contain;
+      display: block;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateZ(0);
+      will-change: opacity;
+    }
+
+    .product-image.is-visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .details {
+      padding-top: 4px;
+      min-height: 620px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      line-height: 1.28;
+      margin: 0 0 10px;
+      font-weight: 500;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.5;
+      display: flex;
+      align-items: baseline;
+      gap: 36px;
+    }
+
+    .subtitle-price {
+      color: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      white-space: nowrap;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .custom-select {
+      position: relative;
+      width: 96%;
+    }
+
+    .custom-select-trigger {
+      width: 100%;
+      min-height: 32px;
+      height: auto;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      font-size: 15px;
+      padding: 7px 42px 7px 14px;
+      border-radius: 0;
+      outline: none;
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 24px;
+    }
+
+    .custom-select-trigger::after {
+      content: "";
+      position: absolute;
+      right: 16px;
+      top: 10px;
+      width: 8px;
+      height: 8px;
+      border-right: 1px solid #222;
+      border-bottom: 1px solid #222;
+      transform: rotate(45deg);
+    }
+
+    .custom-select.open .custom-select-trigger {
+      border-color: var(--border);
+    }
+
+    .custom-select.has-selection .custom-select-trigger,
+    .custom-select.open.has-selection .custom-select-trigger {
+      border-color: #111;
+    }
+
+    .trigger-name,
+    .trigger-price {
+      font-size: 13px;
+    }
+
+    .custom-options {
+      display: none;
+      position: absolute;
+      top: 32px;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      margin: -1px 0 0;
+      padding: 0;
+      list-style: none;
+      background: #fff;
+      border: 1px solid #111;
+      max-height: none;
+      overflow: visible;
+    }
+
+    .custom-select.open .custom-options {
+      display: block;
+    }
+
+    .custom-option {
+      min-height: 34px;
+      padding: 7px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      font-size: 13px;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+
+    .no-buy-option {
+      font-size: 13px;
+      font-style: normal;
+      text-decoration: none;
+      letter-spacing: 0;
+      line-height: 1.25;
+    }
+
+    .custom-option.no-buy-option {
+      min-height: 34px;
+      padding: 7px 14px;
+      align-items: center;
+    }
+
+    .no-buy-option .option-name {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .trigger-name.no-buy-option {
+      font-size: 13px;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      line-height: 1.25;
+    }
+
+    .custom-option:hover {
+      background: #f4f4f4;
+    }
+
+
+    .decision-message {
+      display: none;
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #b00020;
+    }
+
+    .decision-message.is-visible {
+      display: block;
+    }
+
+    .button {
+      margin-top: auto;
+      width: 100%;
+      height: 48px;
+      border: 1px solid #111;
+      background: #111;
+      color: #fff;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: default;
+    }
+
+    .note {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 800px) {
+      .page {
+        grid-template-columns: 1fr;
+        gap: 32px;
+        padding: 28px 18px 48px;
+        align-items: start;
+      }
+
+      .image-panel {
+        min-height: 420px;
+      }
+
+      .details {
+        min-height: auto;
+      }
+
+      .button {
+        margin-top: 24px;
+      }
+
+      .product-image {
+        width: 86%;
+        height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">LUNVIERO</header>
+
+  <main class="page">
+    <section class="details" aria-label="Product selection area">
+      <div class="brand">Aurelia Studio</div>
+      <h1>Nilestone Mouse Pad</h1>
+      <div class="subtitle">
+        <span>Premium-Textured Mouse Pad</span>
+        <span class="subtitle-price">$6.5</span>
+      </div>
+
+      <div class="field">
+        <label id="productLabel">Product</label>
+        <div class="custom-select" id="productSelect" aria-labelledby="productLabel">
+          <button class="custom-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false"></button>
+          <ul class="custom-options" role="listbox"></ul>
+        </div>
+      </div>
+
+      <div class="decision-message" id="decisionMessage">Please select one option to continue.</div>
+
+      <button class="button" type="button">Continue</button>
+
+    </section>
+
+    <section class="image-panel" aria-label="Product image area">
+      <img id="productImage" class="product-image" src="" alt="" decoding="async" loading="eager" />
+    </section>
+  </main>
+
+  <script src="products.js"></script>
+  <script>
+    const productSelect = document.getElementById('productSelect');
+    const trigger = productSelect.querySelector('.custom-select-trigger');
+    const optionList = productSelect.querySelector('.custom-options');
+    const productImage = document.getElementById('productImage');
+    const continueButton = document.querySelector('.button');
+    const decisionMessage = document.getElementById('decisionMessage');
+
+    let selectedProductName = '';
+    let selectedProductImage = '';
+    let selectedProductPrice = '';
+    let selectedNoBuy = '0';
+
+
+    let totalClicks = 0;
+    let optionClicks = 0;
+    let continueClicks = 0;
+    let invalidContinueClicks = 0;
+
+    document.addEventListener('click', () => {
+      totalClicks += 1;
+    });
+    const preloadedImages = new Map();
+
+    function preloadImage(src) {
+      if (!src || preloadedImages.has(src)) return;
+
+      const img = new Image();
+      img.decoding = 'async';
+      img.loading = 'eager';
+      img.src = src;
+
+      preloadedImages.set(src, img);
+
+      if (img.decode) {
+        img.decode().catch(() => {});
+      }
+    }
+
+    function preloadProductImages() {
+      if (!Array.isArray(window.PRODUCTS)) return;
+
+      window.PRODUCTS.forEach((product) => {
+        preloadImage(product.image);
+      });
+
+      preloadImage('product-images/More Alternative.png');
+    }
+
+    function showProductImage(src, alt) {
+      if (!src) return;
+
+      preloadImage(src);
+      productImage.src = src;
+      productImage.alt = alt || '';
+      productImage.classList.add('is-visible');
+    }
+
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function buildProductOptions() {
+      if (!Array.isArray(window.PRODUCTS)) return;
+
+      const randomizedProducts = shuffleArray(window.PRODUCTS);
+      optionList.innerHTML = '';
+
+      randomizedProducts.forEach((product) => {
+        const option = document.createElement('li');
+        option.className = 'custom-option';
+        option.setAttribute('role', 'option');
+        option.dataset.name = product.name;
+        option.dataset.image = product.image;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'option-name';
+        nameSpan.textContent = product.name;
+
+        option.appendChild(nameSpan);
+        optionList.appendChild(option);
+      });
+
+      const noBuyOption = document.createElement('li');
+      noBuyOption.className = 'custom-option no-buy-option';
+      noBuyOption.setAttribute('role', 'option');
+      noBuyOption.dataset.name = 'I would not buy any of these mouse pads and would like to look for more alternatives';
+      noBuyOption.dataset.image = 'product-images/More Alternative.png';
+      noBuyOption.dataset.noBuy = 'true';
+
+      const noBuyText = document.createElement('span');
+      noBuyText.className = 'option-name';
+      noBuyText.textContent = noBuyOption.dataset.name;
+      noBuyOption.appendChild(noBuyText);
+      optionList.appendChild(noBuyOption);
+    }
+
+    trigger.addEventListener('click', () => {
+      const isOpen = productSelect.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    optionList.addEventListener('click', (event) => {
+      const option = event.target.closest('.custom-option');
+      if (!option) return;
+
+
+      optionClicks += 1;
+      trigger.innerHTML = '';
+
+      const selectedName = document.createElement('span');
+      selectedName.className = 'trigger-name';
+      selectedName.textContent = option.dataset.name;
+
+      trigger.appendChild(selectedName);
+
+      selectedProductName = option.dataset.name || '';
+      selectedProductImage = option.dataset.image || '';
+      selectedProductPrice = option.dataset.noBuy === 'true' ? '' : '$6.5';
+      selectedNoBuy = option.dataset.noBuy === 'true' ? '1' : '0';
+      productSelect.classList.add('has-selection');
+      decisionMessage.classList.remove('is-visible');
+
+      if (option.dataset.noBuy === 'true') {
+        selectedName.classList.add('no-buy-option');
+        showProductImage(option.dataset.image, option.dataset.name);
+      } else {
+        showProductImage(option.dataset.image, option.dataset.name);
+      }
+      productSelect.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!productSelect.contains(event.target)) {
+        productSelect.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    continueButton.addEventListener('click', () => {
+      continueClicks += 1;
+
+      if (!selectedProductName) {
+        invalidContinueClicks += 1;
+        decisionMessage.classList.add('is-visible');
+        return;
+      }
+
+      window.parent.postMessage({
+        type: 'netlify_complete',
+        choice: selectedProductName,
+        page: window.location.pathname,
+        selectedProduct: selectedProductName,
+        selectedPrice: selectedProductPrice,
+        selectedProductImage: selectedProductImage,
+        productChosen: selectedNoBuy === '1' ? '0' : '1',
+        noBuyOptionChosen: selectedNoBuy,
+        totalClicks: String(totalClicks),
+        optionClicks: String(optionClicks),
+        continueClicks: String(continueClicks),
+        invalidContinueClicks: String(invalidContinueClicks)
+      }, '*');
+    });
+
+    buildProductOptions();
+    preloadProductImages();
+  </script>
+</body>
+</html>
